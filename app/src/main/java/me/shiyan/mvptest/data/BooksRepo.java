@@ -87,8 +87,19 @@ public class BooksRepo implements BooksDataSource {
     }
 
     @Override
-    public void getBook(@NonNull int bookId, @NonNull GetBookCallBack callBack) {
+    public void getBook(@NonNull int bookId, @NonNull final GetBookCallBack callBack) {
 
+        mbooksLocalDataSource.getBook(bookId, new GetBookCallBack() {
+            @Override
+            public void onBookLoaded(BookDetail bookDetail) {
+                callBack.onBookLoaded(bookDetail);
+            }
+
+            @Override
+            public void onDataNotAvailable() {
+                callBack.onDataNotAvailable();
+            }
+        });
     }
 
     @Override
@@ -109,6 +120,7 @@ public class BooksRepo implements BooksDataSource {
 
     @Override
     public void getBooksClassifies(@NonNull final LoadBooksClassifiesCallBack callBack) {
+
         if (!mClassifyCacheIsDirty &&  mBooksClassifyCache != null){
             callBack.onBooksClassifiesLoaded(new ArrayList<BooksClassify>(mBooksClassifyCache.values()));
         }
@@ -190,12 +202,12 @@ public class BooksRepo implements BooksDataSource {
                     if (response.isSuccessful()){
                         try{
                             String result = response.body().string();
-                            saveAllBooksClassifies(new JSONObject(result).getJSONArray("tngou"));
+                            JSONArray booksClassifies = new JSONObject(result).getJSONArray("tngou");
+                            saveAllBooksClassifies(booksClassifies);
+                            freshBookClassifyCache(jsonArrayToClassifyArrayList(booksClassifies));
                             if (callBack!=null){
                                 callBack.onBooksClassifiesLoaded(jsonArrayToClassifyArrayList(new JSONObject(result).getJSONArray("tngou")));
                             }
-                            JSONArray booksClassifies = new JSONObject(result).getJSONArray("tngou");
-                            JSONArray books = new JSONArray();
                             for(int i=0 ; i< booksClassifies.length(); i++){
                                 JSONObject object = booksClassifies.getJSONObject(i);
                                 HttpUtils.getBooksDetail(object.getInt("id"), 1, 20, new Callback() {
@@ -205,24 +217,23 @@ public class BooksRepo implements BooksDataSource {
                                     }
                                     @Override
                                     public void onResponse(Call call, Response response) throws IOException {
-                                        String result = response.body().string();
-                                        Log.d(TAG,result);
+
                                         if (response.isSuccessful()) {
                                             try{
+                                                String result = response.body().string();
+                                                appendBooksCache(jsonArrayToBookArrayList(new JSONObject(result).getJSONArray("list")));
                                                 saveBooks(new JSONObject(result).getJSONArray("list"));
                                                 if (callBack1 != null){
                                                     callBack1.onBooksLoaded(jsonArrayToBookArrayList(new JSONObject(result).getJSONArray("list")));
                                                 }
                                             }catch (JSONException e){
-                                                //saveBooks(null);
                                                 e.printStackTrace();
                                             }
                                         }
                                     }
                                 });
                             }
-                            freshBookClassifyCache(jsonArrayToClassifyArrayList(booksClassifies));
-                            //freshBooksCache(jsonArrayToBookArrayList(books));
+
                         }catch (JSONException e){
                             e.printStackTrace();
                         }
@@ -244,6 +255,17 @@ public class BooksRepo implements BooksDataSource {
         mBooksCache.clear();
         for (BookDetail book: arrayList
              ) {
+            mBooksCache.put(book.getId(), book);
+        }
+        mBooksCacheIsDirty = false;
+    }
+
+    public void appendBooksCache(ArrayList<BookDetail> arrayList){
+        if (mBooksCache == null){
+            mBooksCache = new LinkedHashMap<>();
+        }
+        for (BookDetail book: arrayList
+                ) {
             mBooksCache.put(book.getId(), book);
         }
         mBooksCacheIsDirty = false;

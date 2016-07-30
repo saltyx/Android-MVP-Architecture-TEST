@@ -21,7 +21,9 @@ public class BooksPresenter implements BooksContract.Presenter {
 
     private final BooksContract.View mBooksView;
 
-    public boolean mFirstLoad = true;
+    public static boolean mFirstLoad = true;
+
+    private String mCurrentClassify = "";
 
     public BooksPresenter(@NonNull BooksRepo mBooksRepo,@NonNull BooksContract.View mBooksView) {
         this.mBooksRepo = mBooksRepo;
@@ -41,7 +43,19 @@ public class BooksPresenter implements BooksContract.Presenter {
     }
 
     @Override
+    public String getCurrentClassify() {
+        return mCurrentClassify;
+    }
+
+    @Override
+    public void setCurrentClassify(@NonNull String classifyName) {
+        this.mCurrentClassify = classifyName;
+        loadBooksByClassifyName(classifyName);
+    }
+
+    @Override
     public void loadBooksByClassifyName(String classifyName) {
+
         mBooksRepo.getBooksByClassifyName(classifyName, new BooksDataSource.LoadBooksCallBack() {
             @Override
             public void onBooksLoaded(ArrayList<BookDetail> bookDetails) {
@@ -50,13 +64,15 @@ public class BooksPresenter implements BooksContract.Presenter {
 
             @Override
             public void onDataNotAvailable() {
-
+                mBooksView.showNoBooks();
             }
         });
     }
 
     @Override
     public void loadBooksClassifies(boolean forceUpdate) {
+
+        Log.d(TAG,String.valueOf(mFirstLoad));
         if (forceUpdate || mFirstLoad){
             mBooksRepo.freshClassify();
             mFirstLoad = false;
@@ -69,9 +85,11 @@ public class BooksPresenter implements BooksContract.Presenter {
 
             @Override
             public void onDataNotAvailable() {
-
+                mBooksView.showNoClassfiy();
             }
         });
+
+        mFirstLoad = false;
     }
 
     private void processBooksClassifies(ArrayList<BooksClassify> booksClassifies){
@@ -88,7 +106,6 @@ public class BooksPresenter implements BooksContract.Presenter {
         if (bookDetails.isEmpty()){
             mBooksView.showNoBooks();
         }else{
-            Log.d(TAG,bookDetails.toString());
             mBooksView.showBooks(bookDetails);
         }
     }

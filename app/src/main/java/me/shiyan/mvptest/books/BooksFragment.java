@@ -1,6 +1,7 @@
 package me.shiyan.mvptest.books;
 
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -23,13 +24,15 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 import me.shiyan.mvptest.R;
+import me.shiyan.mvptest.base.BaseDialog;
 import me.shiyan.mvptest.data.models.BookDetail;
 import me.shiyan.mvptest.data.models.BooksClassify;
+import me.shiyan.mvptest.details.DetailActivity;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class BooksFragment extends Fragment implements BooksContract.View, BooksContract.BooksClassifyOnItemClickListener{
+public class BooksFragment extends Fragment implements BooksContract.View {
 
     private String TAG = getClass().getName();
 
@@ -37,18 +40,13 @@ public class BooksFragment extends Fragment implements BooksContract.View, Books
 
     private BooksAdapter mListAdapter;
 
-    private TextView mNoBooksViewMain;
-
-    private ImageView mNoBooksIcon;
-
     private LinearLayout mBooksView;
 
-    private View mNoBooksView;
+    private LinearLayout mNoBooksView;
 
     private ListView listView;
 
     public BooksFragment() {
-        // Required empty public constructor
 
     }
 
@@ -59,29 +57,31 @@ public class BooksFragment extends Fragment implements BooksContract.View, Books
     @Override
     public void onResume() {
         super.onResume();
+
     }
 
     @Override
     public void showClassfies(ArrayList<BooksClassify> booksClassifies) {
 
-        ((BooksActivity)getActivity()).setClassifyNav(booksClassifies);
+        if (getActivity() != null)
+            ((BooksActivity)getActivity()).setClassifyNav(booksClassifies);
 
     }
 
-    @Override
-    public void onClassifyItemClick(String title) {
-        mPresenter.loadBooksByClassifyName(title);
-        //Toast.makeText(getContext(),title,Toast.LENGTH_SHORT).show();
-    }
 
     @Override
     public void showNoClassfiy() {
 
+        if (getActivity() != null){
+            ((BooksActivity)getActivity()).setNoClassifyNav();
+        }
     }
 
     @Override
     public void showNoBooks() {
 
+        mNoBooksView.setVisibility(View.VISIBLE);
+        mBooksView.setVisibility(View.GONE);
     }
 
     @Override
@@ -90,7 +90,7 @@ public class BooksFragment extends Fragment implements BooksContract.View, Books
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_books, container, false);
@@ -98,7 +98,10 @@ public class BooksFragment extends Fragment implements BooksContract.View, Books
         mListAdapter = new BooksAdapter(new ArrayList<BookDetail>(),new BooksItemListener(){
             @Override
             public void onBooksClick(BookDetail book) {
-                Toast.makeText(getContext(),book.getName(),Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), DetailActivity.class);
+                intent.putExtra("BOOK_ID",book.getId());
+                intent.putExtra("BOOK_NAME",book.getName());
+                startActivity(intent);
             }
         });
 
@@ -108,9 +111,7 @@ public class BooksFragment extends Fragment implements BooksContract.View, Books
         mBooksView = (LinearLayout) root.findViewById(R.id.booksClassifyAll);
 
         //when no mBook
-        mNoBooksIcon = (ImageView) root.findViewById(R.id.noBooksClassifyIcon);
-        mNoBooksViewMain = (TextView) root.findViewById(R.id.noBooksClassifyMain);
-        mNoBooksView = root.findViewById(R.id.booksClassifyAll);
+        mNoBooksView = (LinearLayout) root.findViewById(R.id.noBooksClassify);
 
         setHasOptionsMenu(true);
         return root;
@@ -127,6 +128,10 @@ public class BooksFragment extends Fragment implements BooksContract.View, Books
         switch (item.getItemId()){
             case R.id.fresh:
                 mPresenter.loadBooksClassifies(false);
+                Toast.makeText(getContext(),"Cache刷新",Toast.LENGTH_SHORT).show();
+                break;
+            case R.id.about:
+                showAbout();
                 break;
             default:
                 break;
@@ -145,12 +150,18 @@ public class BooksFragment extends Fragment implements BooksContract.View, Books
 
     }
 
+    private void showAbout(){
+        BaseDialog about = new BaseDialog(getContext(),R.style.BaseDailog);
+        about.setLayoutContent(R.layout.about_layout);
+        about.show();
+    }
+
     @Override
     public void showBooks(ArrayList<BookDetail> bookDetails) {
 
         mListAdapter.replaceData(bookDetails);
         mBooksView.setVisibility(View.VISIBLE);
-        mNoBooksView.setVisibility(View.VISIBLE);
+        mNoBooksView.setVisibility(View.GONE);
         listView.setAdapter(mListAdapter);
     }
 

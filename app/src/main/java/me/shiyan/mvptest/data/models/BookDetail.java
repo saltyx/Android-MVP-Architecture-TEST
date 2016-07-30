@@ -15,7 +15,7 @@ public class BookDetail extends RealmObject {
     private int     bookclass;
     private String  img;
     private int     time;
-
+    private String  summary;
 
     public int getId() {
         return id;
@@ -65,4 +65,11 @@ public class BookDetail extends RealmObject {
         this.time = time;
     }
 
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
 }

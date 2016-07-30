@@ -61,7 +61,6 @@ public class BooksLocalDataSource implements me.shiyan.mvptest.data.BooksDataSou
             RealmResults<BookDetail> books = realm.where(BookDetail.class)
                     .equalTo("bookclass",result.getId())
                     .findAll();
-            Log.d(TAG,String.valueOf(books.size()));
             if (books.size() == 0){
                 callback.onDataNotAvailable();
             }else {

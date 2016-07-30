@@ -5,7 +5,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".mBook.BooksActivity"
+    tools:context=".books.BooksActivity"
     tools:openDrawer="start">
 
     <LinearLayout
@@ -46,6 +46,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
         </ListView>
+        <TextView android:id="@+id/noClassify"
+            android:paddingTop="192dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="没找到分类"
+            android:visibility="gone"/>
     </android.support.design.widget.NavigationView>
 
 </android.support.v4.widget.DrawerLayout>

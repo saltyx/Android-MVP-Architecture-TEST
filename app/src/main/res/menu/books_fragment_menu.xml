@@ -7,5 +7,8 @@
         android:title="刷新"
         android:icon="@drawable/ic_cached_white_48dp"
         app:showAsAction="always" />
-
+    <item android:id="@+id/about"
+        android:title="关于"
+        android:icon="@drawable/ic_star_white_48dp"
+        ></item>
 </menu>

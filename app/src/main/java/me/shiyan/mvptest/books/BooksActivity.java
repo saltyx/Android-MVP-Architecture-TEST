@@ -8,11 +8,14 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +32,11 @@ import me.shiyan.mvptest.utils.ActivityUtils;
 
 public class BooksActivity extends AppCompatActivity {
 
+    private String TAG = getClass().getName();
+
     private static final String CURRENT_BOOK_CLASSIFY = "CURRENT_BOOK_CLASSIFY";
+
+    private static final String ALL_BOOK_CLASSIFY = "ALL_BOOK_CLASSIFY";
 
     private DrawerLayout mDrawerLayout;
 
@@ -37,8 +44,9 @@ public class BooksActivity extends AppCompatActivity {
 
     private ListView mClassifyListView;
 
-    private BooksContract.BooksClassifyOnItemClickListener mOnItemClick;
+    private TextView mNoClassifyTextView;
 
+    private ActionBar mActionBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,25 +55,25 @@ public class BooksActivity extends AppCompatActivity {
         // Set up the toolbar.
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        ActionBar ab = getSupportActionBar();
-        ab.setTitle(R.string.app_name);
-        ab.setHomeAsUpIndicator(R.drawable.ic_menu);
-        ab.setDisplayHomeAsUpEnabled(true);
+        mActionBar = getSupportActionBar();
+        mActionBar.setTitle(R.string.app_name);
+        mActionBar.setHomeAsUpIndicator(R.drawable.ic_menu);
+        mActionBar.setDisplayHomeAsUpEnabled(true);
 
         BooksFragment booksFragment =
                 (BooksFragment) getSupportFragmentManager().findFragmentById(R.id.contentFrame);
         if (booksFragment == null){
             booksFragment = BooksFragment.newInstance();
             ActivityUtils.addFragmentToActivity(getSupportFragmentManager(), booksFragment,R.id.contentFrame);
-            mOnItemClick = (BooksContract.BooksClassifyOnItemClickListener)booksFragment;
         }
         //setup presenter
         mPresenter = new BooksPresenter(
                 BooksRepo.getInstance(BooksLocalDataSource.getInstance(getApplication()))
                 ,booksFragment);
 
-        // Set up the navigation drawer.
+        mNoClassifyTextView = (TextView) findViewById(R.id.noClassify);
 
+        // Set up the navigation drawer.
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.setStatusBarBackground(R.color.colorPrimaryDark);
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -74,9 +82,18 @@ public class BooksActivity extends AppCompatActivity {
         }
 
         if (savedInstanceState != null){
-
+            mPresenter.setCurrentClassify(savedInstanceState.getString(CURRENT_BOOK_CLASSIFY));
+            mActionBar.setTitle(mPresenter.getCurrentClassify());
         }
     }
+
+    @Override
+    //保存上一次选择的类别
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(CURRENT_BOOK_CLASSIFY,mPresenter.getCurrentClassify());
+        super.onSaveInstanceState(outState);
+    }
+
 
     public void setupDrawerContent(NavigationView navigationView){
         mPresenter.loadBooksClassifies(false);
@@ -95,23 +112,27 @@ public class BooksActivity extends AppCompatActivity {
                 mClassifyListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        mOnItemClick.onClassifyItemClick(adapter.getItem(position));
-                        //view.setChecked(true);
+                        mPresenter.setCurrentClassify(adapter.getItem(position));
+                        mActionBar.setTitle(mPresenter.getCurrentClassify());
                         mDrawerLayout.closeDrawers();
                     }
                 });
+                mClassifyListView.setVisibility(View.VISIBLE);
+                mNoClassifyTextView.setVisibility(View.GONE);
             }
         });
-
     }
 
-    @Override
-    //目前无想法
-    public void onSaveInstanceState(Bundle outState) {
-        outState.putSerializable(CURRENT_BOOK_CLASSIFY,"");
-
-        super.onSaveInstanceState(outState);
+    public void setNoClassifyNav(){
+        BooksActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mNoClassifyTextView.setVisibility(View.VISIBLE);
+                mClassifyListView.setVisibility(View.GONE);
+            }
+        });
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

@@ -39,7 +39,14 @@ public class HttpUtils {
                 .build();
         client.newCall(request).enqueue(callback);
     }
-    //httpmethod : post
+    //httpmethod : get image from internet
 
+    public static void getBookImg(String subUrl, Callback callback){
+
+        Request request = new Request.Builder()
+                .url(AppConfig.BASE_API_URL_BOOK_IMG+subUrl+"_180x120")
+                .build();
+        client.newCall(request).enqueue(callback);
+    }
 
 }

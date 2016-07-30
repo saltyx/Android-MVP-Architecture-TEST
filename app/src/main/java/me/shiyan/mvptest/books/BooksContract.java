@@ -1,5 +1,7 @@
 package me.shiyan.mvptest.books;
 
+import android.support.annotation.NonNull;
+
 import java.util.ArrayList;
 
 import me.shiyan.mvptest.BasePresenter;
@@ -36,11 +38,10 @@ public interface BooksContract {
 
         void loadBooksByClassifyName(String classifyName);
 
-    }
+        void setCurrentClassify(@NonNull String classifyName);
 
-    interface BooksClassifyOnItemClickListener{
-
-        void onClassifyItemClick(String title);
+        String getCurrentClassify();
 
     }
+
 }
