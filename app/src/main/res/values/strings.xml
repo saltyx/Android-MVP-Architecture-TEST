@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MvpTest</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="api_url">http://apis.baidu.com/tngou/book/classify</string>
+    <string name="no_books_classify">No Books</string>
+</resources>
